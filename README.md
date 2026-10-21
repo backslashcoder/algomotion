@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# AlgoMotion
 
-## Getting Started
+An interactive algorithm learning and visualization platform. Algorithms run for real in the browser,
+produce deterministic execution traces, and a shared engine lets you play, pause, step forwards **and
+backwards**, scrub, change speed, follow pseudocode, read plain-English explanations, inspect
+variables and compare observed metrics with theoretical complexity.
 
-First, run the development server:
+**Algorithms:** Bubble Sort, Insertion Sort, Merge Sort, Binary Search, Breadth-First Search.
+
+**Stack:** Next.js (App Router) · React · JavaScript (JSX) · Tailwind CSS v4 · shadcn/ui (Base UI) ·
+Zustand · SVG (+ d3 for graph layout) · Lucide · Vitest + React Testing Library · Playwright.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` / `npm start` | Production build / serve |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest unit + component tests |
+| `npm run test:e2e` | Playwright journeys (builds and serves the app on port 3100; first run: `npx playwright install chromium`) |
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`/` landing with a live preview · `/algorithms` searchable library · `/algorithms/[slug]` workspace ·
+`/about`.
 
-## Learn More
+## Keyboard shortcuts (workspace)
 
-To learn more about Next.js, take a look at the following resources:
+`Space` play/pause · `←` `→` step · `Home` `End` first/last step. Ignored while typing.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* [Architecture](docs/architecture.md): trace contract, playback state machine, adapters, design tokens.
+* [How to add a new algorithm](docs/adding-an-algorithm.md).
 
-## Deploy on Vercel
+## Project layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/            routes (/, /algorithms, /algorithms/[slug], /about)
+algorithms/     definitions + registry (no React, no stores)
+engine/         tracer, trace generator/validator, state reconstruction, playback controller
+stores/         zustand: workspace, playback, preferences
+visualizations/ renderer registry + array, graph, state-panel renderers
+components/     workspace, player, panels, inputs, library, layout, ui (shadcn)
+hooks/          current frame, shortcuts, reduced motion, local playback
+tests/ e2e/     Vitest suites / Playwright journeys
+docs/           architecture + contributor guide
+```

@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { ROLE_STYLES, barRatio, groupPointers, resolveRoles } from "./roles";
+import { ROLE_STYLES, barRatio, resolveRoles } from "./roles";
 import { VizLegend } from "../shared/legend";
+import { cn } from "@/lib/utils";
 
 const MAX_WIDTH = 800;
 const PAD = 24;
@@ -38,9 +39,29 @@ const LEGEND_LABELS = {
   found: "Found",
 };
 
+/** Roles that glow while they are the current focus of a step. */
+const GLOWING = new Set(["compare", "active", "key", "swap", "shift", "take"]);
+/** Roles that take part in the completion wave. */
+const CELEBRATING = new Set(["sorted", "found", "best", "placed"]);
+
+/**
+ * Presentation-only motion hint for index `i`: elements that swap or shift hop
+ * along an arc while sliding. Derived purely from the step's focus, never from history.
+ */
+function hopFor(i, focus) {
+  const pair = Array.isArray(focus.swapping) ? [...focus.swapping].sort((a, b) => a - b) : [];
+  if (pair.length === 2) {
+    if (i === pair[0]) return "hop-up";
+    if (i === pair[1]) return "hop-down";
+  }
+  if (Array.isArray(focus.shifting) && focus.shifting.includes(i)) return "hop-up";
+  return null;
+}
+
 /**
  * Renders the array family: sorting bars and search cells.
  * It only reads `state` + `focus`; it never knows which algorithm produced them.
+ * All motion is CSS driven by the current frame, so logical state never depends on animation.
  */
 export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
   const { state, step } = frame;
@@ -51,6 +72,7 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
   const WIDTH = Math.min(MAX_WIDTH, Math.max(380, n * 60 + 40));
   const mode = config.mode ?? "bars";
   const showAux = Boolean(config.auxRow) || Array.isArray(state.aux);
+  const celebrate = step.type === "complete";
 
   const geometry = useMemo(() => {
     const slot = Math.min(76, (WIDTH - PAD * 2) / Math.max(n, 1));
@@ -61,7 +83,6 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
 
   const { slot, startX, min, max } = geometry;
   const roles = resolveRoles(n, state, focus);
-  const pointers = groupPointers(focus.pointers, n);
 
   const isBars = mode === "bars";
   const topPad = 52;
@@ -79,6 +100,18 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
   const barWidth = Math.min(slot * 0.74, 52);
   const xOf = (i) => startX + i * slot;
   const barHeight = (value) => 22 + barRatio(value, min, max) * (barArea - 22);
+  const motionMs = `${transitionMs}ms`;
+
+  // pointers: one glide-able element per name; same-index pointers stack vertically
+  const pointerEntries = Object.entries(focus.pointers ?? {}).filter(
+    ([, index]) => Number.isInteger(index) && index >= 0 && index < n,
+  );
+  const stackCount = {};
+  const pointerLayout = pointerEntries.map(([name, index]) => {
+    const stack = stackCount[index] ?? 0;
+    stackCount[index] = stack + 1;
+    return { name, index, stack };
+  });
 
   const summary = `${isBars ? "Bar chart" : "Array"} of ${n} values: ${items
     .map((e) => e.value)
@@ -94,17 +127,19 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
     tag: ROLE_STYLES[role]?.tag,
   }));
 
+  const win = state.window;
+
   return (
     <div className="flex w-full flex-col gap-3">
       <svg
         viewBox={`0 0 ${WIDTH} ${height}`}
-        className="h-auto w-full"
+        className="h-auto w-full overflow-visible"
         role="img"
         aria-label={summary}
       >
-        {/* active range / candidate region */}
+        {/* active range / candidate region (re-mounted per range so it fades in) */}
         {Array.isArray(state.range) && (
-          <g>
+          <g key={`range-${state.range[0]}-${state.range[1]}`} className="viz-fade-in">
             <rect
               x={xOf(state.range[0]) + 2}
               y={topPad - 36}
@@ -116,8 +151,6 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
               stroke="var(--viz-active)"
               strokeOpacity={0.55}
               strokeDasharray="4 5"
-              className="viz-fade"
-              style={{ transitionDuration: `${transitionMs}ms` }}
             />
             <text
               x={xOf(state.range[0]) + 10}
@@ -131,35 +164,55 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
           </g>
         )}
 
-        {/* sliding window bracket with a label */}
-        {state.window && (
+        {/* sliding window bracket: a unit-width path scaled to the window so it glides and stretches */}
+        {win && (
           <g aria-hidden="true">
-            <path
-              d={`M ${xOf(state.window.from) + 4} ${topPad - 8} v -9 H ${xOf(state.window.to + 1) - 4} v 9`}
-              fill="none"
-              stroke="var(--viz-compare)"
-              strokeWidth={2.5}
-              strokeLinejoin="round"
-              className="viz-fade"
-              style={{ transitionDuration: `${transitionMs}ms` }}
-            />
-            <text
-              x={(xOf(state.window.from) + xOf(state.window.to + 1)) / 2}
-              y={topPad - 24}
-              textAnchor="middle"
-              fontSize={13}
-              fontWeight={700}
-              fill="var(--viz-compare)"
-              className="font-mono"
+            <g
+              className="viz-move"
+              style={{
+                transform: `translate(${xOf(win.from) + 4}px, ${topPad - 8}px)`,
+                transitionDuration: motionMs,
+              }}
             >
-              {state.window.label}
-            </text>
+              <path
+                d="M 0 0 v -9 H 1 v 9"
+                fill="none"
+                stroke="var(--viz-compare)"
+                strokeWidth={2.5}
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+                className="viz-move"
+                style={{
+                  transform: `scaleX(${Math.max(xOf(win.to + 1) - xOf(win.from) - 8, 1)})`,
+                  transformOrigin: "0 0",
+                  transitionDuration: motionMs,
+                }}
+              />
+            </g>
+            <g
+              className="viz-move"
+              style={{
+                transform: `translate(${(xOf(win.from) + xOf(win.to + 1)) / 2}px, ${topPad - 24}px)`,
+                transitionDuration: motionMs,
+              }}
+            >
+              <text
+                textAnchor="middle"
+                fontSize={13}
+                fontWeight={700}
+                fill="var(--viz-compare)"
+                className="font-mono"
+              >
+                {win.label}
+              </text>
+            </g>
           </g>
         )}
 
         {/* divider between two halves */}
         {Number.isInteger(focus.divider) && (
           <line
+            key={`divider-${focus.divider}`}
             x1={xOf(focus.divider + 1)}
             x2={xOf(focus.divider + 1)}
             y1={topPad - 30}
@@ -167,6 +220,7 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
             stroke="var(--viz-active)"
             strokeWidth={2}
             strokeDasharray="3 4"
+            className="viz-fade-in viz-march"
           />
         )}
 
@@ -181,82 +235,117 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
           const x = (slot - w) / 2;
           const y = baseY - h - lift;
           const dim = outsideRange && role === "default" ? 0.4 : style.opacity;
+          const hop = hopFor(i, focus);
+          const wave = celebrate && CELEBRATING.has(role);
+          const motion = hop ?? (wave ? "wave" : null);
+          const glow = !celebrate && GLOWING.has(role);
           return (
             <g
               key={item.id}
               className="viz-move"
               style={{
                 transform: `translate(${xOf(i)}px, 0px)`,
-                transitionDuration: `${transitionMs}ms`,
+                transitionDuration: motionMs,
                 opacity: dim,
               }}
             >
-              <rect
-                x={x}
-                y={y}
-                width={w}
-                height={h}
-                rx={isBars ? 5 : 8}
-                fill={style.fill}
-                fillOpacity={style.fillOpacity}
-                stroke={style.stroke}
-                strokeWidth={style.strokeWidth}
-                strokeDasharray={style.dash}
-                className="viz-fade"
-                style={{ transitionDuration: `${transitionMs}ms` }}
-              />
-              <text
-                x={slot / 2}
-                y={isBars ? y - 8 : y + h / 2 + 5}
-                textAnchor="middle"
-                fontSize={isBars ? 14 : Math.max(10, Math.min(15, Math.round(w * 0.42)))}
-                fontWeight={600}
-                fill="var(--viz-label)"
-                className="font-mono"
+              {/* entrance (runs once on mount) */}
+              <g
+                className={isBars ? "viz-rise" : "viz-pop"}
+                style={{ animationDelay: `${Math.min(i * 35, 600)}ms` }}
               >
-                {item.value}
-              </text>
-              <text
-                x={slot / 2}
-                y={indexY}
-                textAnchor="middle"
-                fontSize={11}
-                fill="var(--muted-foreground)"
-                className="font-mono"
-              >
-                {i}
-              </text>
-              {def?.tag && (
+                {/* per-step arc hop / completion wave: re-mounted only when a motion applies */}
+                <g
+                  key={motion ? `${motion}-${step.id}` : "idle"}
+                  className={motion ? `viz-${motion}` : undefined}
+                  style={
+                    motion
+                      ? {
+                          animationDuration: wave ? "650ms" : motionMs,
+                          animationDelay: wave ? `${i * 55}ms` : undefined,
+                        }
+                      : undefined
+                  }
+                >
+                  <rect
+                    x={x}
+                    y={y}
+                    width={w}
+                    height={h}
+                    rx={isBars ? 5 : 8}
+                    fill={style.fill}
+                    fillOpacity={style.fillOpacity}
+                    stroke={style.stroke}
+                    strokeWidth={style.strokeWidth}
+                    strokeDasharray={style.dash}
+                    className={cn("viz-fade", glow && "viz-glow")}
+                    style={{ transitionDuration: motionMs, "--glow": style.stroke }}
+                  />
+                  <text
+                    x={slot / 2}
+                    y={isBars ? y - 8 : y + h / 2 + 5}
+                    textAnchor="middle"
+                    fontSize={isBars ? 14 : Math.max(10, Math.min(15, Math.round(w * 0.42)))}
+                    fontWeight={600}
+                    fill="var(--viz-label)"
+                    className="font-mono"
+                  >
+                    {item.value}
+                  </text>
+                </g>
                 <text
                   x={slot / 2}
-                  y={tagY}
+                  y={indexY}
                   textAnchor="middle"
-                  fontSize={10}
-                  fontWeight={600}
-                  fill={def.color ? colorVar(def.color === "dim" ? "label" : def.color) : "var(--muted-foreground)"}
-                  style={def.color === "dim" ? { fill: "var(--muted-foreground)" } : undefined}
+                  fontSize={11}
+                  fill="var(--muted-foreground)"
+                  className="font-mono"
                 >
-                  {def.tag}
+                  {i}
                 </text>
-              )}
+                {def?.tag && (
+                  <text
+                    key={`${role}`}
+                    x={slot / 2}
+                    y={tagY}
+                    textAnchor="middle"
+                    fontSize={10}
+                    fontWeight={600}
+                    fill={def.color ? colorVar(def.color === "dim" ? "label" : def.color) : "var(--muted-foreground)"}
+                    style={def.color === "dim" ? { fill: "var(--muted-foreground)" } : undefined}
+                    className="viz-fade-in"
+                  >
+                    {def.tag}
+                  </text>
+                )}
+              </g>
             </g>
           );
         })}
 
-        {/* pointers */}
-        {Object.entries(pointers).map(([index, names]) => (
-          <g key={index} transform={`translate(${xOf(Number(index)) + slot / 2}, ${pointerY - 14})`}>
-            <path d="M-6 8 L6 8 L0 -2 Z" fill="var(--viz-active)" />
-            <text
-              y={22}
-              textAnchor="middle"
-              fontSize={12}
-              fontWeight={700}
-              fill="var(--viz-active)"
-              className="font-mono"
-            >
-              {names.join(",")}
-            </text>
+        {/* pointers glide between cells; each name is its own element */}
+        {pointerLayout.map(({ name, index, stack }) => (
+          <g
+            key={name}
+            className="viz-move"
+            style={{
+              transform: `translate(${xOf(index) + slot / 2}px, ${pointerY - 14 + stack * 16}px)`,
+              transitionDuration: motionMs,
+            }}
+          >
+            <g className="viz-fade-in">
+              <path d="M-6 8 L6 8 L0 -2 Z" fill="var(--viz-active)" />
+              <text
+                y={22}
+                textAnchor="middle"
+                fontSize={12}
+                fontWeight={700}
+                fill="var(--viz-active)"
+                className="font-mono"
+              >
+                {name}
+              </text>
+            </g>
           </g>
         ))}
 
@@ -300,32 +389,40 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
               const h = 14 + barRatio(item.value, min, max) * (auxArea - 20);
               const isNewest = k === state.aux.length - 1;
               return (
-                <g
-                  key={item.id}
-                  style={{ transform: `translate(${xOf(at)}px, 0px)` }}
-                >
-                  <rect
-                    x={(slot - barWidth) / 2}
-                    y={auxTop + auxArea - h}
-                    width={barWidth}
-                    height={h}
-                    rx={4}
-                    fill="var(--viz-move)"
-                    fillOpacity={isNewest ? 0.85 : 0.45}
-                    stroke="var(--viz-move)"
-                    strokeWidth={isNewest ? 3 : 1}
-                  />
-                  <text
-                    x={slot / 2}
-                    y={auxTop + auxArea + 16}
-                    textAnchor="middle"
-                    fontSize={12}
-                    fontWeight={600}
-                    fill="var(--viz-label)"
-                    className="font-mono"
+                <g key={item.id} style={{ transform: `translate(${xOf(at)}px, 0px)` }}>
+                  {/* a newly buffered value drops in from the main row */}
+                  <g
+                    className="viz-drop"
+                    style={{
+                      "--drop": `${-(auxTop + auxArea - baseY)}px`,
+                      animationDuration: `${Math.max(transitionMs, 1) * 1.6}ms`,
+                    }}
                   >
-                    {item.value}
-                  </text>
+                    <rect
+                      x={(slot - barWidth) / 2}
+                      y={auxTop + auxArea - h}
+                      width={barWidth}
+                      height={h}
+                      rx={4}
+                      fill="var(--viz-move)"
+                      fillOpacity={isNewest ? 0.85 : 0.45}
+                      stroke="var(--viz-move)"
+                      strokeWidth={isNewest ? 3 : 1}
+                      className="viz-fade"
+                      style={{ transitionDuration: motionMs }}
+                    />
+                    <text
+                      x={slot / 2}
+                      y={auxTop + auxArea + 16}
+                      textAnchor="middle"
+                      fontSize={12}
+                      fontWeight={600}
+                      fill="var(--viz-label)"
+                      className="font-mono"
+                    >
+                      {item.value}
+                    </text>
+                  </g>
                 </g>
               );
             })}

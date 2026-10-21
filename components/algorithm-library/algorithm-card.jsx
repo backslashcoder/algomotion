@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export function AlgorithmCard({ algorithm }) {
   const { slug, name, category, technique, difficulty, shortDescription, complexity } = algorithm;
   return (
-    <article className="group relative flex w-full flex-col gap-3 rounded-xl border bg-surface p-5 transition-colors hover:border-primary/50 hover:bg-surface-2/60">
+    <article className="group relative flex w-full flex-col gap-3 rounded-xl border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-surface-2/60 hover:shadow-lg hover:shadow-black/20">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline">{CATEGORIES[category]?.label ?? capitalize(category)}</Badge>
         <Badge variant="outline" className={cn(DIFFICULTY_STYLES[difficulty])}>

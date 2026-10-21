@@ -207,6 +207,105 @@
   transition-timing-function: ease-out;
 }
 
+/*
+ * Motion vocabulary (presentation only; logical state never depends on it).
+ * Durations that follow playback speed are set inline; reduced motion disables all of these below.
+ */
+@keyframes viz-rise {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+.viz-rise {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: viz-rise 560ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@keyframes viz-pop {
+  0% { transform: scale(0.55); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.viz-pop {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: viz-pop 460ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes viz-hop-up {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }
+}
+@keyframes viz-hop-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(16px); }
+}
+.viz-hop-up { animation: viz-hop-up 300ms ease-in-out; }
+.viz-hop-down { animation: viz-hop-down 300ms ease-in-out; }
+
+@keyframes viz-wave {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-18px); }
+  65% { transform: translateY(3px); }
+}
+.viz-wave { animation: viz-wave 650ms ease-in-out both; }
+
+@keyframes viz-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 7px var(--glow, currentColor)); }
+}
+.viz-glow { animation: viz-glow 1.3s ease-in-out infinite; }
+
+@keyframes viz-drop {
+  from { transform: translateY(var(--drop, -120px)); opacity: 0.1; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.viz-drop { animation: viz-drop 480ms cubic-bezier(0.3, 0.7, 0.3, 1) both; }
+
+@keyframes viz-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.viz-fade-in { animation: viz-fade-in 320ms ease-out both; }
+
+@keyframes viz-march {
+  to { stroke-dashoffset: -28; }
+}
+.viz-march { animation: viz-march 0.9s linear infinite; }
+
+@keyframes viz-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+/* use with pathLength="1" on the line */
+.viz-draw {
+  stroke-dasharray: 1;
+  animation: viz-draw 520ms ease-out both;
+}
+
+@keyframes viz-ring {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.viz-ring {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: viz-ring 1.5s ease-out infinite;
+}
+
+@keyframes viz-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.viz-fade-up { animation: viz-fade-up 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+@keyframes viz-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.28); color: var(--primary); }
+  100% { transform: scale(1); }
+}
+.viz-bump { display: inline-block; animation: viz-bump 360ms ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -58,6 +58,7 @@ function WorkspaceBody({ definition }) {
   const frame = useCurrentFrame();
   const totalSteps = useWorkspaceStore((s) => s.trace.steps.length);
   const input = useWorkspaceStore((s) => s.input);
+  const version = useWorkspaceStore((s) => s.version);
   const speed = usePlaybackStore((s) => s.speed);
   const reducedMotion = useReducedMotion();
 
@@ -69,7 +70,7 @@ function WorkspaceBody({ definition }) {
   const { applyInput, resetInput } = useWorkspaceStore.getState();
 
   return (
-    <div className="space-y-6">
+    <div className="viz-fade-up space-y-6">
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="flex min-w-0 flex-col gap-4 lg:col-span-8">
           <section
@@ -78,6 +79,7 @@ function WorkspaceBody({ definition }) {
           >
             <div className="stage-grid px-3 py-5 sm:px-6" data-testid="stage">
               <VisualizationStage
+                key={version}
                 type={definition.visualization.type}
                 frame={frame}
                 config={definition.visualization.config}

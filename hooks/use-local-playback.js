@@ -32,5 +32,6 @@ export function useLocalPlayback(totalSteps) {
     seekToStep: controller.seekToStep,
     reset: controller.reset,
     setSpeed: controller.setSpeed,
+    setLoop: controller.setLoop,
   };
 }

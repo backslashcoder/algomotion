@@ -14,9 +14,9 @@ export function PseudocodePanel({ lines, activeLine }) {
               data-line={line.id}
               aria-current={active ? "step" : undefined}
               className={cn(
-                "flex border-l-2 pr-4 transition-colors",
+                "flex border-l-2 pr-4 transition-all duration-300",
                 active
-                  ? "border-primary bg-primary/12 text-foreground"
+                  ? "border-primary bg-primary/15 pl-1 text-foreground"
                   : "border-transparent text-muted-foreground",
               )}
             >

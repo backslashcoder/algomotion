@@ -26,7 +26,7 @@ export function ExplanationPanel({ step, stepIndex, totalSteps }) {
     >
       <p
         key={step.id}
-        className="min-h-14 text-[15px] leading-relaxed text-foreground"
+        className="viz-fade-up min-h-14 text-[15px] leading-relaxed text-foreground"
         data-testid="explanation"
       >
         {step.explanation}

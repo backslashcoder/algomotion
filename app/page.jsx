@@ -48,7 +48,7 @@ export default function HomePage() {
     <>
       <section className="border-b">
         <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.15fr] lg:py-20">
-          <div className="space-y-6">
+          <div className="viz-fade-up space-y-6">
             <Badge variant="outline" className="font-mono text-primary">
               Interactive algorithm laboratory
             </Badge>
@@ -69,7 +69,9 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <AlgorithmPreview />
+          <div className="viz-fade-up" style={{ animationDelay: "150ms" }}>
+            <AlgorithmPreview />
+          </div>
         </div>
       </section>
 

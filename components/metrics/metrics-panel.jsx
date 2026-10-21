@@ -13,7 +13,10 @@ export function MetricsPanel({ metrics: definitions, values }) {
           <div key={m.key} className="rounded-lg border bg-surface-2/50 px-3 py-2" title={m.description}>
             <dt className="text-xs text-muted-foreground">{m.label}</dt>
             <dd className="font-mono text-xl font-semibold tabular-nums" data-metric={m.key}>
-              {values?.[m.key] ?? 0}
+              {/* keyed by value so the number "bumps" whenever it changes */}
+              <span key={values?.[m.key] ?? 0} className="viz-bump">
+                {values?.[m.key] ?? 0}
+              </span>
             </dd>
           </div>
         ))}

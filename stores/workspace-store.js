@@ -10,6 +10,7 @@ import { usePlaybackStore } from "./playback-store";
  */
 export const useWorkspaceStore = create((set, get) => ({
   slug: null,
+  version: 0, // bumps whenever a new trace is generated (used to replay entrance motion)
   input: null,
   trace: null,
   error: null, // { kind, messages } for the most recent failed generation
@@ -28,7 +29,7 @@ export const useWorkspaceStore = create((set, get) => ({
       set({ slug, input: null, trace: null, error: result.error });
       return { ok: false, error: result.error };
     }
-    set({ slug, input: result.trace.input, trace: result.trace, error: null });
+    set((st) => ({ slug, version: st.version + 1, input: result.trace.input, trace: result.trace, error: null }));
     playback.load(result.trace.steps.length);
     return { ok: true };
   },
@@ -47,7 +48,7 @@ export const useWorkspaceStore = create((set, get) => ({
     }
     const playback = usePlaybackStore.getState();
     playback.pause();
-    set({ input: result.trace.input, trace: result.trace, error: null });
+    set((st) => ({ version: st.version + 1, input: result.trace.input, trace: result.trace, error: null }));
     playback.load(result.trace.steps.length);
     return { ok: true };
   },

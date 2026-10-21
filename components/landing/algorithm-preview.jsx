@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,24 @@ export function AlgorithmPreview() {
   const index = Math.min(playback.stepIndex, trace.steps.length - 1);
   const frame = getFrame(trace, index);
   const playing = playback.status === "playing";
+
+  // The hero demo plays itself (looping at 2x) unless the user prefers reduced motion.
+  // Any manual control press pauses it and it stays under the visitor's control.
+  const autoStarted = useRef(false);
+  const { status, setLoop, setSpeed, play } = playback;
+  useEffect(() => {
+    if (reducedMotion || autoStarted.current || status !== "ready") return undefined;
+    autoStarted.current = true;
+    const timer = setTimeout(() => {
+      setLoop(true);
+      setSpeed(2);
+      play();
+    }, 900);
+    return () => {
+      clearTimeout(timer);
+      autoStarted.current = false;
+    };
+  }, [reducedMotion, status, setLoop, setSpeed, play]);
 
   return (
     <div className="overflow-hidden rounded-2xl border bg-surface shadow-2xl shadow-black/30">

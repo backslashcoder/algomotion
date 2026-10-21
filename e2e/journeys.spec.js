@@ -39,6 +39,7 @@ test.describe("discovery", () => {
   });
 
   test("landing preview runs the real engine", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" }); // no autoplay, so steps are deterministic
     await page.goto("/");
     const explanation = page.getByTestId("preview-explanation");
     await expect(explanation).toContainText("Starting with [5, 2, 8, 1, 9, 3]");
@@ -309,5 +310,44 @@ test.describe("accessibility basics", () => {
     await expect(live).toHaveAttribute("aria-live", "polite");
     await page.getByRole("button", { name: "Next step" }).click();
     await expect(page.getByRole("status").filter({ hasText: /Pass 1/ })).toHaveCount(1);
+  });
+});
+
+test.describe("motion", () => {
+  test("landing preview plays by itself and can be paused", async ({ page }) => {
+    await page.goto("/");
+    const explanation = page.getByTestId("preview-explanation");
+    await expect(explanation).toContainText("Starting with");
+    await expect(explanation).not.toContainText("Starting with", { timeout: 8000 }); // autoplay advanced
+    await page.getByRole("button", { name: "Pause" }).click();
+    const frozen = await explanation.textContent();
+    await page.waitForTimeout(1200);
+    expect(await explanation.textContent()).toBe(frozen);
+  });
+
+  test("swapping bars hop along an arc and pointers are separate elements", async ({ page }) => {
+    await openWorkspace(page, "bubble-sort");
+    for (let i = 0; i < 3; i += 1) await page.getByRole("button", { name: "Next step" }).click();
+    await expect(page.getByTestId("explanation")).toContainText("Swap 6 and 3");
+    await expect(page.getByTestId("stage").locator(".viz-hop-up")).toHaveCount(1);
+    await expect(page.getByTestId("stage").locator(".viz-hop-down")).toHaveCount(1);
+    await page.getByRole("button", { name: "Next step" }).click();
+    await expect(page.getByTestId("stage").locator(".viz-hop-up")).toHaveCount(0);
+  });
+
+  test("completion plays a wave over the sorted elements; reduced motion removes durations", async ({ page }) => {
+    await openWorkspace(page, "bubble-sort");
+    await page.getByRole("slider", { name: "Step timeline" }).focus();
+    await page.keyboard.press("End");
+    await expect(page.getByTestId("stage").locator(".viz-wave")).toHaveCount(7);
+  });
+
+  test("graph: current node has a pulsing ring and tree edges draw themselves", async ({ page }) => {
+    await openWorkspace(page, "breadth-first-search");
+    for (let i = 0; i < 4; i += 1) await page.getByRole("button", { name: "Next step" }).click();
+    await expect(page.getByTestId("stage").locator(".viz-ring")).toHaveCount(1);
+    await page.getByRole("slider", { name: "Step timeline" }).focus();
+    await page.keyboard.press("End");
+    await expect(page.getByTestId("stage").locator("line.viz-draw")).toHaveCount(6);
   });
 });

@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -51,6 +52,7 @@ export default function RootLayout({ children }) {
           </main>
           <SiteFooter />
         </TooltipProvider>
+        <Analytics />
       </body>
     </html>
   );

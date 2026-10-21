@@ -24,9 +24,9 @@ describe("AlgorithmExplorer", () => {
   it("lists every algorithm and filters by search text", async () => {
     const user = userEvent.setup();
     render(<AlgorithmExplorer />);
-    expect(screen.getByTestId("result-count")).toHaveTextContent("5 of 5");
+    expect(screen.getByTestId("result-count")).toHaveTextContent("13 of 13");
     await user.type(screen.getByRole("searchbox", { name: /search algorithms/i }), "queue");
-    expect(screen.getByTestId("result-count")).toHaveTextContent("1 of 5");
+    expect(screen.getByTestId("result-count")).toHaveTextContent("1 of 13");
     expect(screen.getByRole("link", { name: /breadth-first search/i })).toHaveAttribute(
       "href",
       "/algorithms/breadth-first-search",
@@ -37,10 +37,11 @@ describe("AlgorithmExplorer", () => {
     const user = userEvent.setup();
     render(<AlgorithmExplorer />);
     await user.click(screen.getByRole("button", { name: "Sorting" }));
-    expect(screen.getByTestId("result-count")).toHaveTextContent("3 of 5");
+    expect(screen.getByTestId("result-count")).toHaveTextContent("4 of 13");
     await user.click(screen.getByRole("button", { name: "Intermediate" }));
-    expect(screen.getByTestId("result-count")).toHaveTextContent("1 of 5");
+    expect(screen.getByTestId("result-count")).toHaveTextContent("2 of 13");
     expect(screen.getByRole("link", { name: /merge sort/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /quick sort/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sorting" })).toHaveAttribute("aria-pressed", "true");
   });
 
@@ -50,7 +51,7 @@ describe("AlgorithmExplorer", () => {
     await user.type(screen.getByRole("searchbox"), "zzzzzz");
     expect(screen.getByRole("heading", { name: /no algorithms match/i })).toBeInTheDocument();
     await user.click(screen.getAllByRole("button", { name: /clear filters/i })[0]);
-    expect(screen.getByTestId("result-count")).toHaveTextContent("5 of 5");
+    expect(screen.getByTestId("result-count")).toHaveTextContent("13 of 13");
   });
 
   it("matchesQuery needs every term to match", () => {

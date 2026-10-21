@@ -52,6 +52,16 @@ createInitialState: ({ array }) => ({ items: makeItems(array), sorted: [] }),  /
 are part of the contract and should be tested (see `binary-search.js`: it requires sorted input).
 Optional: `initialMetrics(input)` when a gauge should start non-zero (binary search's `remaining`).
 
+Optional input fields that the shared editors understand:
+
+* `input.examples: [{ label, build() }]` — example buttons; `build()` returns a raw input and is
+  validated like user input (a test checks every example of every definition).
+* `input.param: { key, label, help }` with `inputEditor: "array-param"` — an extra numeric parameter
+  next to the array (`k`, `target`…). `input.requiresSorted: true` adds a "Sort array" button.
+* `input.note` — a sentence appended to the number-array editor's help text.
+* `technique` on the definition (a key of `TECHNIQUES` in `algorithms/registry.js`) powers the
+  explorer's technique filter and card label.
+
 The state shape must match what your visualization type expects (see
 `visualizations/array/roles.js` and `visualizations/graph/graph-renderer.jsx`).
 

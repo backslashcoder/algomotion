@@ -14,7 +14,7 @@ function roleStyle(role) {
   return {
     fill: def.color ? colorVar(def.color) : "var(--viz-default)",
     stroke: def.color ? colorVar(def.color) : "var(--viz-default-stroke)",
-    fillOpacity: def.color ? (def.faded ? 0.5 : 0.85) : 1,
+    fillOpacity: def.color ? (def.faded ? 0.5 : def.soft ? 0.5 : 0.85) : 1,
     strokeWidth: def.heavy ? 3 : def.dashed ? 2.5 : 1.5,
     dash: def.dashed ? "6 4" : undefined,
     opacity: def.faded ? 0.55 : 1,
@@ -27,6 +27,9 @@ const LEGENDS = {
 };
 
 const LEGEND_LABELS = {
+  window: "In window",
+  best: "Best",
+  placed: "Placed",
   compare: "Comparing",
   swap: "Swapping / moving",
   key: "Key (selected)",
@@ -84,9 +87,8 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
   const legend = (config.legend ?? LEGENDS[mode] ?? []).map((role) => ({
     role,
     label:
-      role === "sorted"
-        ? (config.sortedLabel ?? "Sorted")
-        : LEGEND_LABELS[role] ?? role,
+      config.legendLabels?.[role] ??
+      (role === "sorted" ? (config.sortedLabel ?? "Sorted") : LEGEND_LABELS[role] ?? role),
     color: ROLE_STYLES[role]?.color,
     dashed: ROLE_STYLES[role]?.dashed,
     tag: ROLE_STYLES[role]?.tag,
@@ -125,6 +127,32 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
               className="font-mono"
             >
               {config.rangeLabel ?? "range"} {state.range[0]}–{state.range[1]}
+            </text>
+          </g>
+        )}
+
+        {/* sliding window bracket with a label */}
+        {state.window && (
+          <g aria-hidden="true">
+            <path
+              d={`M ${xOf(state.window.from) + 4} ${topPad - 8} v -9 H ${xOf(state.window.to + 1) - 4} v 9`}
+              fill="none"
+              stroke="var(--viz-compare)"
+              strokeWidth={2.5}
+              strokeLinejoin="round"
+              className="viz-fade"
+              style={{ transitionDuration: `${transitionMs}ms` }}
+            />
+            <text
+              x={(xOf(state.window.from) + xOf(state.window.to + 1)) / 2}
+              y={topPad - 24}
+              textAnchor="middle"
+              fontSize={13}
+              fontWeight={700}
+              fill="var(--viz-compare)"
+              className="font-mono"
+            >
+              {state.window.label}
             </text>
           </g>
         )}
@@ -181,7 +209,7 @@ export function ArrayRenderer({ frame, config = {}, transitionMs = 300 }) {
                 x={slot / 2}
                 y={isBars ? y - 8 : y + h / 2 + 5}
                 textAnchor="middle"
-                fontSize={isBars ? 14 : 15}
+                fontSize={isBars ? 14 : Math.max(10, Math.min(15, Math.round(w * 0.42)))}
                 fontWeight={600}
                 fill="var(--viz-label)"
                 className="font-mono"

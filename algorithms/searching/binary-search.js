@@ -13,6 +13,7 @@ export const binarySearch = {
   slug: "binary-search",
   name: "Binary Search",
   category: "searching",
+  technique: "binary-search",
   difficulty: "beginner",
   keywords: ["search", "divide and conquer", "sorted", "logarithmic", "midpoint"],
   shortDescription:

@@ -12,6 +12,7 @@ export const bubbleSort = {
   slug: "bubble-sort",
   name: "Bubble Sort",
   category: "sorting",
+  technique: "incremental",
   difficulty: "beginner",
   keywords: ["sort", "swap", "adjacent", "stable", "in-place"],
   shortDescription:

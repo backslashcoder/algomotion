@@ -12,6 +12,7 @@ export const mergeSort = {
   slug: "merge-sort",
   name: "Merge Sort",
   category: "sorting",
+  technique: "divide-and-conquer",
   difficulty: "intermediate",
   keywords: ["sort", "divide and conquer", "recursion", "merge", "stable"],
   shortDescription:

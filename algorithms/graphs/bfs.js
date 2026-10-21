@@ -100,6 +100,7 @@ export const bfs = {
   slug: "breadth-first-search",
   name: "Breadth-First Search",
   category: "graphs",
+  technique: "graph-traversal",
   difficulty: "intermediate",
   keywords: ["bfs", "graph", "traversal", "queue", "shortest path", "level order"],
   shortDescription:

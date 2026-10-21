@@ -2,9 +2,11 @@
  * Array visualization vocabulary
  * ------------------------------
  * state: { items:[{id,value}], sorted?:number[], range?:[lo,hi]|null, eliminated?:number[],
- *          consumed?:number[], aux?:[{id,value}]|null, found?:number|null }
+ *          consumed?:number[], aux?:[{id,value}]|null, found?:number|number[]|null,
+ *          window?:{from,to,label}|null,   // contiguous window drawn as a labelled bracket
+ *          best?:[from,to]|null }          // best range found so far
  * focus: { comparing?:number[], swapping?:number[], shifting?:number[], moving?:number[],
- *          key?:number, active?:number[], placed?:number|number[], found?:number,
+ *          key?:number, active?:number[], placed?:number|number[], found?:number|number[],
  *          divider?:number, pointers?:{[name]:number} }
  */
 
@@ -20,6 +22,8 @@ export const ROLE_STYLES = {
   found: { color: "done", tag: "found", heavy: true },
   placed: { color: "done", tag: "placed" },
   sorted: { color: "done", tag: "✓" },
+  best: { color: "done", tag: "best", soft: true },
+  window: { color: "compare", tag: null, soft: true },
   consumed: { color: "dim", tag: "used", faded: true },
   eliminated: { color: "dim", tag: "out", faded: true },
 };
@@ -41,10 +45,13 @@ export function resolveRoles(n, state = {}, focus = {}) {
   const active = new Set(asArray(focus.active));
   const placed = new Set(asArray(focus.placed));
   const range = state.range;
+  const found = new Set([...asArray(focus.found), ...asArray(state.found)]);
+  const inRange = (r, i) => Array.isArray(r) && i >= r[0] && i <= r[1];
+  const win = state.window ? [state.window.from, state.window.to] : null;
 
   return Array.from({ length: n }, (_, i) => {
     let role = "default";
-    if (focus.found === i || state.found === i) role = "found";
+    if (found.has(i)) role = "found";
     else if (swapping.has(i)) role = "swap";
     else if (shifting.has(i)) role = "shift";
     else if (focus.key === i) role = "key";
@@ -55,6 +62,8 @@ export function resolveRoles(n, state = {}, focus = {}) {
     else if (consumed.has(i)) role = "consumed";
     else if (eliminated.has(i)) role = "eliminated";
     else if (sorted.has(i)) role = "sorted";
+    else if (inRange(state.best, i)) role = "best";
+    else if (inRange(win, i)) role = "window";
     const outsideRange = Array.isArray(range) && (i < range[0] || i > range[1]);
     return { role, outsideRange };
   });

@@ -22,6 +22,7 @@ export function NumberArrayInput({ definition, input, onApply, onReset }) {
   const fieldId = useId();
   const sizeId = useId();
   const { minLength, maxLength, minValue, maxValue } = definition.input.limits;
+  const examples = definition.input.examples;
   const [text, setText] = useState(input.array.join(", "));
   const [size, setSize] = useState(Math.min(Math.max(input.array.length, 5), 12));
   const [errors, setErrors] = useState([]);
@@ -45,6 +46,11 @@ export function NumberArrayInput({ definition, input, onApply, onReset }) {
     const parsed = parseNumberList(text);
     if (!parsed.ok) return setErrors(parsed.errors);
     apply(parsed.values);
+  }
+
+  function applyExample(example) {
+    const res = onApply(example.build());
+    setErrors(res.ok ? [] : res.error.messages);
   }
 
   function preset(kind) {
@@ -76,38 +82,43 @@ export function NumberArrayInput({ definition, input, onApply, onReset }) {
           </Button>
         </div>
         <p id={`${fieldId}-help`} className="text-xs text-muted-foreground">
-          {minLength}–{maxLength} whole numbers from {minValue} to {maxValue}, separated by commas.
+          {minLength}–{maxLength} whole numbers from {minValue} to {maxValue}, separated by commas.{definition.input.note ? ` ${definition.input.note}` : ""}
         </p>
         <FieldError id={`${fieldId}-error`} messages={errors} />
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
-        <div className="space-y-1">
-          <label htmlFor={sizeId} className="block text-xs text-muted-foreground">
-            Size
-          </label>
-          <Input
-            id={sizeId}
-            type="number"
-            min={minLength}
-            max={maxLength}
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            className="w-20 font-mono"
-          />
-        </div>
-        {PRESETS.map((p) => (
-          <Button
-            key={p.kind}
-            type="button"
-            variant="outline"
-            size="lg"
-            onClick={() => preset(p.kind)}
-          >
-            {p.kind === "random" && <Dices data-icon="inline-start" aria-hidden="true" />}
-            {p.label}
-          </Button>
-        ))}
+        {examples ? (
+          examples.map((example, i) => (
+            <Button key={example.label} type="button" variant="outline" size="lg" onClick={() => applyExample(example)}>
+              {i === 0 && <Dices data-icon="inline-start" aria-hidden="true" />}
+              {example.label}
+            </Button>
+          ))
+        ) : (
+          <>
+            <div className="space-y-1">
+              <label htmlFor={sizeId} className="block text-xs text-muted-foreground">
+                Size
+              </label>
+              <Input
+                id={sizeId}
+                type="number"
+                min={minLength}
+                max={maxLength}
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                className="w-20 font-mono"
+              />
+            </div>
+            {PRESETS.map((p) => (
+              <Button key={p.kind} type="button" variant="outline" size="lg" onClick={() => preset(p.kind)}>
+                {p.kind === "random" && <Dices data-icon="inline-start" aria-hidden="true" />}
+                {p.label}
+              </Button>
+            ))}
+          </>
+        )}
         <Button type="button" variant="ghost" size="lg" onClick={onReset}>
           <RotateCcw data-icon="inline-start" aria-hidden="true" />
           Default

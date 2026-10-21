@@ -108,6 +108,10 @@ A renderer is `({ frame: { state, step, index }, config, transitionMs }) => JSX`
 * **Array** (`visualizations/array/`): `roles.js` is pure and tested (focus beats state; priorities
   are documented there). Bars mode (sorting, with optional merge-buffer row) and cells mode (search).
   Items have stable ids, so React moves them with CSS transforms.
+  Beyond sorting state it understands `state.window = { from, to, label }` (a labelled bracket plus
+  tinted cells, used by sliding window and Kadane), `state.best = [from, to]`, `state.found` as a
+  number or a list, and `config.legend` / `config.legendLabels` so each algorithm names its states
+  in its own words (e.g. "Less than target").
 * **Graph** (`visualizations/graph/`): preset positions, otherwise a synchronous `d3-force` layout
   from a fixed start (D3 is used only for layout). Shows node status, tree edges, the edge being
   examined, queue and traversal order.

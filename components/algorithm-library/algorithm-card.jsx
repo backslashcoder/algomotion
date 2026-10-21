@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { CATEGORIES } from "@/algorithms/registry";
+import { CATEGORIES, TECHNIQUES } from "@/algorithms/registry";
 import { DIFFICULTY_STYLES } from "@/lib/constants";
 import { capitalize } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
 /** Catalogue card. Built purely from the algorithm's metadata. */
 export function AlgorithmCard({ algorithm }) {
-  const { slug, name, category, difficulty, shortDescription, complexity } = algorithm;
+  const { slug, name, category, technique, difficulty, shortDescription, complexity } = algorithm;
   return (
     <article className="group relative flex w-full flex-col gap-3 rounded-xl border bg-surface p-5 transition-colors hover:border-primary/50 hover:bg-surface-2/60">
       <div className="flex flex-wrap items-center gap-2">
@@ -16,6 +16,9 @@ export function AlgorithmCard({ algorithm }) {
         <Badge variant="outline" className={cn(DIFFICULTY_STYLES[difficulty])}>
           {capitalize(difficulty)}
         </Badge>
+        {TECHNIQUES[technique] && (
+          <span className="text-xs text-muted-foreground">{TECHNIQUES[technique]}</span>
+        )}
       </div>
       <h3 className="text-lg font-semibold tracking-tight">
         <Link

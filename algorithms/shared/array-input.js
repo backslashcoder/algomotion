@@ -77,3 +77,21 @@ export function generateArrayPreset(kind, length = 10, random = Math.random) {
       return [];
   }
 }
+
+/** Random integer in [lo, hi]. */
+export function randomInt(lo, hi, random = Math.random) {
+  return lo + Math.floor(random() * (hi - lo + 1));
+}
+
+/** Random array of `length` integers in [lo, hi]. */
+export function randomArray(length, lo, hi, random = Math.random) {
+  return Array.from({ length }, () => randomInt(lo, hi, random));
+}
+
+/** Random ascending array (duplicates allowed unless `unique`). */
+export function randomSortedArray(length, lo, hi, { unique = false, random = Math.random } = {}) {
+  if (!unique) return randomArray(length, lo, hi, random).sort((a, b) => a - b);
+  const set = new Set();
+  while (set.size < Math.min(length, hi - lo + 1)) set.add(randomInt(lo, hi, random));
+  return [...set].sort((a, b) => a - b);
+}

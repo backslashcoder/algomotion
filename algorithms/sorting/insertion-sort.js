@@ -12,6 +12,7 @@ export const insertionSort = {
   slug: "insertion-sort",
   name: "Insertion Sort",
   category: "sorting",
+  technique: "incremental",
   difficulty: "beginner",
   keywords: ["sort", "shift", "key", "stable", "in-place", "online"],
   shortDescription:

@@ -2,10 +2,12 @@ import { describe, it, expect } from "vitest";
 import { bubbleSort } from "@/algorithms/sorting/bubble-sort";
 import { insertionSort } from "@/algorithms/sorting/insertion-sort";
 import { mergeSort } from "@/algorithms/sorting/merge-sort";
+import { quickSort } from "@/algorithms/sorting/quick-sort";
 import { generateTrace, tryGenerateTrace } from "@/engine/trace-generator";
 import { reconstructState } from "@/engine/state-reconstruction";
 
-const SORTS = [bubbleSort, insertionSort, mergeSort];
+const SORTS = [bubbleSort, insertionSort, mergeSort, quickSort];
+const UNSTABLE = new Set(["quick-sort"]);
 const ascending = (xs) => [...xs].sort((a, b) => a - b);
 
 // small deterministic PRNG so property checks are repeatable
@@ -47,6 +49,7 @@ describe.each(SORTS.map((d) => [d.name, d]))("%s", (_name, def) => {
         array.map((_, i) => `e${i}`).sort(),
       );
     }
+    if (UNSTABLE.has(def.id)) return;
     const idsByValue = {};
     finalItems(trace).forEach((e) => {
       (idsByValue[e.value] ||= []).push(Number(e.id.slice(1)));

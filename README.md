@@ -5,7 +5,13 @@ produce deterministic execution traces, and a shared engine lets you play, pause
 backwards**, scrub, change speed, follow pseudocode, read plain-English explanations, inspect
 variables and compare observed metrics with theoretical complexity.
 
-**Algorithms:** Bubble Sort, Insertion Sort, Merge Sort, Binary Search, Breadth-First Search.
+**Algorithms (13):**
+- Sorting: Bubble, Insertion, Merge, Quick
+- Searching: Binary Search, Lower Bound
+- Array patterns: Two Sum (sorted), Remove Duplicates, Dutch National Flag, Sliding Window (fixed and variable), Kadane's Maximum Subarray
+- Graphs: Breadth-First Search
+
+The explorer filters by category, difficulty and **technique** (two pointers, sliding window, …).
 
 **Stack:** Next.js (App Router) · React · JavaScript (JSX) · Tailwind CSS v4 · shadcn/ui (Base UI) ·
 Zustand · SVG (+ d3 for graph layout) · Lucide · Vitest + React Testing Library · Playwright.

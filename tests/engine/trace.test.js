@@ -155,7 +155,7 @@ describe("registry contract", () => {
     const defs = listAlgorithms();
     expect(new Set(defs.map((d) => d.slug)).size).toBe(defs.length);
     expect(new Set(defs.map((d) => d.id)).size).toBe(defs.length);
-    expect(listSlugs()).toHaveLength(5);
+    expect(listSlugs()).toHaveLength(13);
     expect(getAlgorithm("nonexistent")).toBeNull();
   });
 

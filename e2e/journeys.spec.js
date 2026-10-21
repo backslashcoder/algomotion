@@ -18,7 +18,7 @@ test.describe("discovery", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("algorithms think");
     await page.getByRole("link", { name: /explore algorithms/i }).first().click();
     await expect(page).toHaveURL(/\/algorithms$/);
-    await expect(page.getByTestId("result-count")).toHaveText("5 of 5 algorithms");
+    await expect(page.getByTestId("result-count")).toHaveText("13 of 13 algorithms");
     await page.getByRole("main").getByRole("link", { name: /bubble sort/i }).click();
     await expect(page).toHaveURL(/\/algorithms\/bubble-sort$/);
     await expect(page.getByRole("heading", { level: 1, name: "Bubble Sort" })).toBeVisible();
@@ -28,12 +28,12 @@ test.describe("discovery", () => {
   test("explorer search, filters and empty state", async ({ page }) => {
     await page.goto("/algorithms");
     await page.getByRole("searchbox", { name: /search algorithms/i }).fill("queue");
-    await expect(page.getByTestId("result-count")).toHaveText("1 of 5 algorithms");
+    await expect(page.getByTestId("result-count")).toHaveText("1 of 13 algorithms");
     await page.getByRole("searchbox").fill("nothing-matches-this");
     await expect(page.getByRole("heading", { name: /no algorithms match/i })).toBeVisible();
     await page.getByRole("button", { name: /^clear filters$/i }).last().click();
     await page.getByRole("button", { name: "Searching" }).click();
-    await expect(page.getByTestId("result-count")).toHaveText("1 of 5 algorithms");
+    await expect(page.getByTestId("result-count")).toHaveText("2 of 13 algorithms");
     await page.getByRole("main").getByRole("link", { name: /binary search/i }).click();
     await expect(page).toHaveURL(/binary-search$/);
   });

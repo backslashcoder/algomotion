@@ -5,7 +5,7 @@ import { Search, SearchX, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlgorithmCard } from "./algorithm-card";
-import { CATEGORIES, DIFFICULTIES, listAlgorithms } from "@/algorithms/registry";
+import { CATEGORIES, DIFFICULTIES, TECHNIQUES, listAlgorithms } from "@/algorithms/registry";
 import { matchesQuery } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +45,7 @@ export function AlgorithmExplorer() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [difficulty, setDifficulty] = useState("all");
+  const [technique, setTechnique] = useState("all");
 
   const all = listAlgorithms();
   const results = useMemo(
@@ -53,9 +54,10 @@ export function AlgorithmExplorer() {
         (a) =>
           matchesQuery(a, query) &&
           (category === "all" || a.category === category) &&
-          (difficulty === "all" || a.difficulty === difficulty),
+          (difficulty === "all" || a.difficulty === difficulty) &&
+          (technique === "all" || a.technique === technique),
       ),
-    [all, query, category, difficulty],
+    [all, query, category, difficulty, technique],
   );
 
   const categoryOptions = [
@@ -63,12 +65,20 @@ export function AlgorithmExplorer() {
     ...Object.values(CATEGORIES).map((c) => ({ id: c.id, label: c.label })),
   ];
   const difficultyOptions = [{ id: "all", label: "Any" }, ...DIFFICULTIES];
-  const filtered = query || category !== "all" || difficulty !== "all";
+  const usedTechniques = new Set(all.map((a) => a.technique));
+  const techniqueOptions = [
+    { id: "all", label: "Any" },
+    ...Object.entries(TECHNIQUES)
+      .filter(([id]) => usedTechniques.has(id))
+      .map(([id, label]) => ({ id, label })),
+  ];
+  const filtered = query || category !== "all" || difficulty !== "all" || technique !== "all";
 
   function clear() {
     setQuery("");
     setCategory("all");
     setDifficulty("all");
+    setTechnique("all");
   }
 
   return (
@@ -95,6 +105,7 @@ export function AlgorithmExplorer() {
         <div className="flex flex-wrap gap-x-8 gap-y-4">
           <FilterGroup label="Category" options={categoryOptions} value={category} onChange={setCategory} />
           <FilterGroup label="Difficulty" options={difficultyOptions} value={difficulty} onChange={setDifficulty} />
+          <FilterGroup label="Technique" options={techniqueOptions} value={technique} onChange={setTechnique} />
         </div>
       </div>
 

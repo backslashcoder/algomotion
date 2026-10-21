@@ -277,6 +277,13 @@ test.describe("responsive", () => {
     await expect(page.getByRole("button", { name: "Play", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Next step" }).click();
     expect(await stepNumber(page)).toBe(2);
+    // keyboard shortcuts are hidden on small screens; the step counter takes their place
+    await expect(page.getByText("Keyboard shortcuts")).toBeHidden();
+    await expect(counter(page)).toBeVisible();
+    await expect(status(page)).toBeVisible();
+    const speed = await page.getByRole("radiogroup", { name: "Playback speed" }).boundingBox();
+    const count = await counter(page).boundingBox();
+    expect(count.y).toBeGreaterThan(speed.y + speed.height - 1); // counter sits below the speed control
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );

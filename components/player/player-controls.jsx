@@ -122,25 +122,31 @@ export function PlayerControls() {
               </button>
             ))}
           </div>
-
-          <div className="min-w-24 text-right" aria-live="off">
-            <div className="font-mono text-sm tabular-nums" data-testid="step-counter">
-              Step {totalSteps ? stepIndex + 1 : 0} / {totalSteps}
-            </div>
-            <div
-              className={cn(
-                "text-xs",
-                playing ? "text-primary" : "text-muted-foreground",
-              )}
-              data-testid="playback-status"
-            >
-              {STATUS_LABEL[status]}
-            </div>
-          </div>
         </div>
       </div>
-
-      <ShortcutHelp />
+      <div className="flex items-start justify-center gap-4 sm:justify-between">
+        {/* keyboard shortcuts are meaningless on touch devices, so they are hidden on small screens */}
+        <div className="hidden sm:block">
+          <ShortcutHelp />
+        </div>
+        <div className="flex items-baseline gap-2 text-center sm:text-right" aria-live="off">
+          <span className="font-mono text-sm tabular-nums" data-testid="step-counter">
+            Step {totalSteps ? stepIndex + 1 : 0} / {totalSteps}
+          </span>
+          <span
+            aria-hidden="true"
+            className="text-muted-foreground"
+          >
+            ·
+          </span>
+          <span
+            className={cn("text-xs", playing ? "text-primary" : "text-muted-foreground")}
+            data-testid="playback-status"
+          >
+            {STATUS_LABEL[status]}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
